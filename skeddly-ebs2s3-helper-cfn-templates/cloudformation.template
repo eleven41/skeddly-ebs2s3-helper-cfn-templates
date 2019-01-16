@@ -116,6 +116,7 @@
                         }
                     ]
                 },
+				"MapPublicIpOnLaunch": true,
                 "Tags"             : [
                     {
                         "Key" : "Name",
@@ -158,6 +159,7 @@
                         }
                     ]
                 },
+				"MapPublicIpOnLaunch": true,
                 "Tags"             : [
                     {
                         "Key" : "Name",
