@@ -1,0 +1,329 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+    "Description"              : "Creates a 10.0.0.0/16 VPC, subnets, security group, and IAM role for skeddly-ebs2s3",
+    "Parameters"               : {
+        "ResourceTagName" : {
+            "Description" : "Name of the resource tag",
+            "Type"        : "String",
+            "Default"     : "skeddly:function"
+        },
+        "ResourceTagValue" : {
+            "Description" : "Value of the resource tag",
+            "Type"        : "String",
+            "Default"     : "skeddly-ebs2s3"
+        }
+    },
+    "Resources"                : {
+        "Vpc" : {
+            "Type" : "AWS::EC2::VPC",
+            "Properties" : {
+                "CidrBlock" : "10.0.0.0/16",
+                "EnableDnsSupport" : true,
+                "EnableDnsHostnames" : true,
+                "InstanceTenancy"    : "default",
+                "Tags"               : [
+                    {
+                        "Key" : "Name",
+                        "Value" : "skeddly-ebs2s3"
+                    },
+                    {
+                        "Key" : {
+                            "Ref" : "ResourceTagName"
+                        },
+                        "Value" : {
+                            "Ref" : "ResourceTagValue"
+                        }
+                    }
+                ]
+            }
+        },
+        "InternetGateway" : {
+            "Type" : "AWS::EC2::InternetGateway",
+            "Properties" : {
+                "Tags" : [
+                    {
+                        "Key" : "Name",
+                        "Value" : "skeddly-ebs2s3"
+                    },
+                    {
+                        "Key" : {
+                            "Ref" : "ResourceTagName"
+                        },
+                        "Value" : {
+                            "Ref" : "ResourceTagValue"
+                        }
+                    }
+                ]
+            }
+        },
+        "GatewayAttachment" : {
+            "Type" : "AWS::EC2::VPCGatewayAttachment",
+            "Properties" : {
+                "VpcId" : {
+                    "Ref" : "Vpc"
+                },
+                "InternetGatewayId" : {
+                    "Ref" : "InternetGateway"
+                }
+            }
+        },
+        "RouteTable"        : {
+            "Type" : "AWS::EC2::RouteTable",
+            "Properties" : {
+                "VpcId" : {
+                    "Ref" : "Vpc"
+                },
+                "Tags"  : [
+                    {
+                        "Key" : "Name",
+                        "Value" : "skeddly-ebs2s3"
+                    },
+                    {
+                        "Key" : {
+                            "Ref" : "ResourceTagName"
+                        },
+                        "Value" : {
+                            "Ref" : "ResourceTagValue"
+                        }
+                    }
+                ]
+            }
+        },
+        "EgressRoute"       : {
+            "Type" : "AWS::EC2::Route",
+            "Properties" : {
+                "DestinationCidrBlock" : "0.0.0.0/0",
+                "GatewayId"            : {
+                    "Ref" : "InternetGateway"
+                },
+                "RouteTableId"         : {
+                    "Ref" : "RouteTable"
+                }
+            }
+        },
+        "Subnet1"           : {
+            "Type" : "AWS::EC2::Subnet",
+            "Properties" : {
+                "VpcId" : {
+                    "Ref" : "Vpc"
+                },
+                "CidrBlock" : "10.0.0.0/18",
+                "AvailabilityZone" : {
+                    "Fn::Select" : [
+                        "0",
+                        {
+                            "Fn::GetAZs" : ""
+                        }
+                    ]
+                },
+                "Tags"             : [
+                    {
+                        "Key" : "Name",
+                        "Value" : "skeddly-ebs2s3"
+                    },
+                    {
+                        "Key" : {
+                            "Ref" : "ResourceTagName"
+                        },
+                        "Value" : {
+                            "Ref" : "ResourceTagValue"
+                        }
+                    }
+                ]
+            }
+        },
+        "SubnetAttachment1" : {
+            "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties" : {
+                "RouteTableId" : {
+                    "Ref" : "RouteTable"
+                },
+                "SubnetId"     : {
+                    "Ref" : "Subnet1"
+                }
+            }
+        },
+        "Subnet2"           : {
+            "Type" : "AWS::EC2::Subnet",
+            "Properties" : {
+                "VpcId" : {
+                    "Ref" : "Vpc"
+                },
+                "CidrBlock" : "10.0.64.0/18",
+                "AvailabilityZone" : {
+                    "Fn::Select" : [
+                        "1",
+                        {
+                            "Fn::GetAZs" : ""
+                        }
+                    ]
+                },
+                "Tags"             : [
+                    {
+                        "Key" : "Name",
+                        "Value" : "skeddly-ebs2s3"
+                    },
+                    {
+                        "Key" : {
+                            "Ref" : "ResourceTagName"
+                        },
+                        "Value" : {
+                            "Ref" : "ResourceTagValue"
+                        }
+                    }
+                ]
+            }
+        },
+        "SubnetAttachment2" : {
+            "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties" : {
+                "RouteTableId" : {
+                    "Ref" : "RouteTable"
+                },
+                "SubnetId"     : {
+                    "Ref" : "Subnet2"
+                }
+            }
+        },
+        "S3EndPoint"        : {
+            "Type" : "AWS::EC2::VPCEndpoint",
+            "Properties" : {
+                "VpcEndpointType" : "Gateway",
+                "VpcId"           : {
+                    "Ref" : "Vpc"
+                },
+                "RouteTableIds"   : [
+                    {
+                        "Ref" : "RouteTable"
+                    }
+                ],
+                "ServiceName"     : {
+                    "Fn::Join" : [
+                        "",
+                        [
+                            "com.amazonaws.",
+                            {
+                                "Ref" : "AWS::Region"
+                            },
+                            ".s3"
+                        ]
+                    ]
+                }
+            }
+        },
+        "SecurityGroup"     : {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+                "GroupDescription" : "Enable outgoing access to the internet",
+                "VpcId"            : {
+                    "Ref" : "Vpc"
+                },
+                "SecurityGroupEgress" : [
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort"   : "443",
+                        "ToPort"     : "443",
+                        "CidrIp"     : "0.0.0.0/0"
+                    }
+                ],
+                "Tags"                : [
+                    {
+                        "Key" : "Name",
+                        "Value" : "skeddly-ebs2s3"
+                    },
+                    {
+                        "Key" : {
+                            "Ref" : "ResourceTagName"
+                        },
+                        "Value" : {
+                            "Ref" : "ResourceTagValue"
+                        }
+                    }
+                ]
+            }
+        },
+        "IamRole"           : {
+            "Type" : "AWS::IAM::Role",
+            "Properties" : {
+                "AssumeRolePolicyDocument" : {
+                    "Version" : "2012-10-17",
+                    "Statement" : [
+                        {
+                            "Effect" : "Allow",
+                            "Principal" : {
+                                "Service" : [
+                                    "ec2.amazonaws.com"
+                                ]
+                            },
+                            "Action"    : [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path"                     : "/"
+            }
+        },
+        "IamInstanceProfile" : {
+            "Type" : "AWS::IAM::InstanceProfile",
+            "Properties" : {
+                "Path" : "/",
+                "Roles" : [
+                    {
+                        "Ref" : "IamRole"
+                    }
+                ]
+            }
+        },
+        "InstancePolicy"     : {
+            "Type" : "AWS::IAM::Policy",
+            "Properties" : {
+                "PolicyName" : "root",
+                "PolicyDocument" : {
+                    "Version" : "2012-10-17",
+                    "Statement" : [
+                        {
+                            "Effect" : "Allow",
+                            "Action" : [
+                                "s3:PutObject"
+                            ],
+                            "Resource" : "*"
+                        }
+                    ]
+                },
+                "Roles"          : [
+                    {
+                        "Ref" : "IamRole"
+                    }
+                ]
+            }
+        }
+    },
+    "Outputs"                  : {
+        "VpcId" : {
+            "Value" : {
+                "Ref" : "Vpc"
+            }
+        },
+        "Subnet1" : {
+            "Value" : {
+                "Ref" : "Subnet1"
+            }
+        },
+        "Subnet2" : {
+            "Value" : {
+                "Ref" : "Subnet2"
+            }
+        },
+        "SecurityGroup" : {
+            "Value" : {
+                "Ref" : "SecurityGroup"
+            }
+        },
+        "IamInstanceProfile" : {
+            "Value" : {
+                "Ref" : "IamInstanceProfile"
+            }
+        }
+    }
+}
