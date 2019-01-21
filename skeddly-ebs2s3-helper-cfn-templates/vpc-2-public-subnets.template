@@ -1,7 +1,12 @@
 {
     "AWSTemplateFormatVersion" : "2010-09-09",
-    "Description"              : "Creates a 10.0.0.0/16 VPC, subnets, security group, and IAM role for skeddly-ebs2s3",
+    "Description"              : "Creates a 10.0.0.0/16 VPC, public subnets, and security group for skeddly-ebs2s3",
     "Parameters"               : {
+		"ResourceNameTagValue" : {
+            "Description" : "Value for the Name resource tags",
+            "Type"        : "String",
+            "Default"     : "skeddly-ebs2s3"
+        },
         "ResourceTagName" : {
             "Description" : "Name of the resource tag",
             "Type"        : "String",
@@ -24,7 +29,7 @@
                 "Tags"               : [
                     {
                         "Key" : "Name",
-                        "Value" : "skeddly-ebs2s3"
+                        "Value" : { "Ref" : "ResourceNameTagValue" }
                     },
                     {
                         "Key" : {
@@ -43,7 +48,7 @@
                 "Tags" : [
                     {
                         "Key" : "Name",
-                        "Value" : "skeddly-ebs2s3"
+                        "Value" : { "Ref" : "ResourceNameTagValue" }
                     },
                     {
                         "Key" : {
@@ -76,7 +81,7 @@
                 "Tags"  : [
                     {
                         "Key" : "Name",
-                        "Value" : "skeddly-ebs2s3"
+                        "Value" : { "Ref" : "ResourceNameTagValue" }
                     },
                     {
                         "Key" : {
@@ -120,7 +125,7 @@
                 "Tags"             : [
                     {
                         "Key" : "Name",
-                        "Value" : "skeddly-ebs2s3"
+                        "Value" : { "Ref" : "ResourceNameTagValue" }
                     },
                     {
                         "Key" : {
@@ -163,7 +168,7 @@
                 "Tags"             : [
                     {
                         "Key" : "Name",
-                        "Value" : "skeddly-ebs2s3"
+                        "Value" : { "Ref" : "ResourceNameTagValue" }
                     },
                     {
                         "Key" : {
@@ -231,7 +236,7 @@
                 "Tags"                : [
                     {
                         "Key" : "Name",
-                        "Value" : "skeddly-ebs2s3"
+                        "Value" : { "Ref" : "ResourceNameTagValue" }
                     },
                     {
                         "Key" : {
@@ -240,62 +245,6 @@
                         "Value" : {
                             "Ref" : "ResourceTagValue"
                         }
-                    }
-                ]
-            }
-        },
-        "IamRole"           : {
-            "Type" : "AWS::IAM::Role",
-            "Properties" : {
-                "AssumeRolePolicyDocument" : {
-                    "Version" : "2012-10-17",
-                    "Statement" : [
-                        {
-                            "Effect" : "Allow",
-                            "Principal" : {
-                                "Service" : [
-                                    "ec2.amazonaws.com"
-                                ]
-                            },
-                            "Action"    : [
-                                "sts:AssumeRole"
-                            ]
-                        }
-                    ]
-                },
-                "Path"                     : "/"
-            }
-        },
-        "IamInstanceProfile" : {
-            "Type" : "AWS::IAM::InstanceProfile",
-            "Properties" : {
-                "Path" : "/",
-                "Roles" : [
-                    {
-                        "Ref" : "IamRole"
-                    }
-                ]
-            }
-        },
-        "InstancePolicy"     : {
-            "Type" : "AWS::IAM::Policy",
-            "Properties" : {
-                "PolicyName" : "root",
-                "PolicyDocument" : {
-                    "Version" : "2012-10-17",
-                    "Statement" : [
-                        {
-                            "Effect" : "Allow",
-                            "Action" : [
-                                "s3:PutObject"
-                            ],
-                            "Resource" : "*"
-                        }
-                    ]
-                },
-                "Roles"          : [
-                    {
-                        "Ref" : "IamRole"
                     }
                 ]
             }
@@ -320,11 +269,6 @@
         "SecurityGroup" : {
             "Value" : {
                 "Ref" : "SecurityGroup"
-            }
-        },
-        "IamInstanceProfile" : {
-            "Value" : {
-                "Ref" : "IamInstanceProfile"
             }
         }
     }
