@@ -10,3 +10,14 @@ This template will create the following resources:
 Template File: [vpc-2-public-subnets.template](vpc-2-public-subnets.template)
 
 ![vpc-2-public-subnets](vpc-2-public-subnets.png?raw=true)
+
+## IAM Role
+
+This template will create the following resources:
+
+* An IAM role,
+* An IAM policy allowing:
+  * `s3:PutObject`
+* An IAM instance profile
+
+Template File: [iam-role.template](iam-role.template)

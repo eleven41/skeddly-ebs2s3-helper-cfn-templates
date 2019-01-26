@@ -12,13 +12,5 @@
 # Backup files
 *.bak
 
-Publish/
-TestResults/
-
-Skeddly.Admin/App_Data/Token.xml
-
 .vs/
-
-# Ignore developer-specific files
-*.dev.config
 
