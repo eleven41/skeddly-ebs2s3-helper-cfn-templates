@@ -38,7 +38,21 @@
                         }
                     ]
                 },
-                "Path"                     : "/"
+                "Path"                     : "/",
+                "Tags"               : [
+                    {
+                        "Key" : "Name",
+                        "Value" : { "Ref" : "ResourceNameTagValue" }
+                    },
+                    {
+                        "Key" : {
+                            "Ref" : "ResourceTagName"
+                        },
+                        "Value" : {
+                            "Ref" : "ResourceTagValue"
+                        }
+                    }
+                ]
             }
         },
         "IamInstanceProfile" : {
